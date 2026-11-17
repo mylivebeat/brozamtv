@@ -1,47 +1,687 @@
-<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BroZam TV</title><style>
-:root{--blue:#13cfff;--panel:#091d35dd;--line:#ffffff33;--fg:white}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,"Roboto",sans-serif;color:var(--fg);background:#031126}button{font:inherit;color:inherit;cursor:pointer}#scene{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 25%,#ffba61a5 0%,transparent 16%),linear-gradient(175deg,#03142e 3%,#23375c 19%,#7e4e62 30%,#ff9748 37%,#2f5271 44%,#071a35 65%,#020b18 100%)}#scene svg{position:absolute;inset:0;width:100%;height:100%;opacity:.92}.shade{position:fixed;inset:0;background:linear-gradient(#010b1bab,transparent 20%,#06152d66 48%,#000a19e8 100%)}main{position:relative;height:100vh;padding:1.3vw 2.8vw 2vw;display:flex;flex-direction:column;gap:1.2vh}header{display:flex;align-items:center;gap:2vw;height:7vh;border-bottom:1px solid #cddfff38;padding-bottom:1vh}.logo{font-weight:800;font-size:2vw;white-space:nowrap}.nav{display:flex;gap:1vw}.nav button{border:0;background:#04172ac9;border-radius:3vw;padding:.65vw 1.6vw;font-size:1.35vw;font-weight:600}.nav button.selected{background:#7cf5f1;color:#07162e}.nav button:focus,.tile:focus,.action:focus,.sm:focus{outline:3px solid #14cfff;box-shadow:0 0 15px 4px #07cfffaa;transform:scale(1.025)}header .right{margin-left:auto;font-size:1.65vw;font-weight:700}#dashboard{display:flex;align-items:center;height:20vh;gap:1.9vw}.clock{width:50%;display:flex;flex-direction:column;justify-content:center}.time{font-size:6.7vw;font-weight:750;line-height:1.1;letter-spacing:-.3vw}.date{font-size:1.5vw;font-weight:600;margin-top:1vh}.weather{width:50%;border-left:2px solid #ffffffaa;padding-left:1.8vw;display:flex;gap:2vw;align-items:center;justify-content:space-between}.now{min-width:35%}.place{font-weight:700;font-size:1.25vw}.temperature{font-size:3.6vw;font-weight:700;line-height:1.1}.description{font-size:1.2vw}.forecast{display:flex;gap:.5vw;align-items:center}.forecast section{border-left:1px solid #ffffff65;padding-left:.85vw;text-align:center;min-width:5.5vw;font-size:1.13vw}.forecast .ico{font-size:2.1vw}.forecast strong{font-size:1.2vw}.section-title{font-size:1.5vw;font-weight:700;margin:1vh 0 .7vh}.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:1vw}.tile{height:11.2vh;border:1px solid #ffffff58;border-radius:1.25vw;background:linear-gradient(135deg,#122c51e8,#07152be8);display:flex;align-items:center;justify-content:center;gap:.5vw;text-align:center;font-size:1.7vw;font-weight:800;box-shadow:0 5px 12px #0006;transition:transform .1s}.tile.light{background:linear-gradient(150deg,#fff,#dce6f4);color:#141f34}.tile.blue{background:linear-gradient(135deg,#002fad,#04135b)}.tile.dark{background:linear-gradient(150deg,#071321,#0e1722)}.tile .small{font-size:1.4vw}.tile .emoji{font-size:2.3vw}.tile.web{border:2px solid #4feaff;box-shadow:0 0 15px #00bfff}.tile:hover,.action:hover,.sm:hover{filter:brightness(1.25)}#files{border:1px solid #36d7ff;border-radius:1.3vw;background:#041a34dd;padding:1vw 1.2vw;display:flex;align-items:center;gap:1vw;box-shadow:0 0 10px #0dbbff77;min-height:13vh;margin-top:.6vh}.files-title{width:22%;font-size:1.5vw;font-weight:800}.files-title .sub{font-size:1.1vw;font-weight:400;margin-top:.4vh}.action{height:9vh;flex:1;display:flex;align-items:center;gap:1vw;border:1px solid #ffffff44;border-radius:1vw;background:linear-gradient(110deg,#23496aee,#101e37e8);padding:1vw;text-align:left;font-size:1.2vw;font-weight:700;white-space:nowrap}.action .symbol{font-size:2vw}.action small{display:block;font-size:.85vw;font-weight:400;margin-top:.35vh;white-space:normal}.footer{display:grid;grid-template-columns:repeat(5,1fr);gap:1vw;margin-top:auto}.sm{height:9vh;border:1px solid #ffffff55;border-radius:1.1vw;background:#0d2947e8;font-size:1.42vw;font-weight:700}.sm span{font-size:1.7vw;margin-right:1vw}#toast{position:fixed;left:30%;right:30%;bottom:15%;text-align:center;background:#081b34ee;border:1px solid #19d2ff;padding:1.5vw;border-radius:1vw;font-size:1.35vw;display:none}#toast.show{display:block}#edit{display:none;position:fixed;inset:0;background:#000a;align-items:center;justify-content:center}#edit>div{background:#0a203b;padding:2vw;border-radius:1vw;width:40%;border:1px solid #33dfff}#edit input{width:100%;font-size:1.4vw;padding:1vw;margin:1vh 0;color:black}#edit button{background:#1e9ec2;border:0;border-radius:.6vw;padding:.7vw 1.2vw;margin:.5vw}#custom{display:contents}.muted{color:#c6d7e6}
-</style></head><body>
-<div id="scene"><svg viewBox="0 0 1600 900" preserveAspectRatio="none"><path d="M0 410 L120 315 L205 370 L350 255 L445 340 L600 215 L710 355 L830 260 L1000 385 L1115 265 L1230 352 L1405 245 L1600 395 L1600 900 L0 900Z" fill="#17395b"/><path d="M0 485L155 375L280 440L410 348L560 465L700 325L845 430L980 310L1140 447L1330 355L1600 470L1600 900L0 900Z" fill="#102941"/><path d="M0 575L190 480L340 545L520 430L670 565L855 450L1050 550L1180 460L1400 530L1600 480L1600 900L0 900Z" fill="#081c33"/><path d="M0 665L140 585L280 630L430 560L590 650L795 570L980 660L1130 575L1360 655L1600 580L1600 900L0 900Z" fill="#041528"/></svg></div><div class="shade"></div>
+
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BroZam TV</title>
+
+<style>
+:root {
+  --blue: #13cfff;
+  --fg: #ffffff;
+  --panel: #091d35ee;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--fg);
+  background: #031126;
+  font-family: Arial, Roboto, sans-serif;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+#scene {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 69% 24%,
+      #ffbf72 0%, transparent 21%),
+    linear-gradient(175deg,
+      #03142e 3%, #23375c 19%,
+      #7e4e62 30%, #ff9748 37%,
+      #2f5271 44%, #071a35 65%,
+      #020b18 100%);
+}
+#scene svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: .92;
+}
+.shade {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    #010b1bab, transparent 20%,
+    #06152d66 48%, #000a19dc 100%
+  );
+}
+main {
+  position: relative;
+  height: 100vh;
+  padding: 1.3vw 2.4vw 2vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4vh;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+  min-height: 7.5vh;
+  border-bottom: 1px solid #cddfff55;
+  padding-bottom: 1vh;
+}
+.logo {
+  font-weight: 800;
+  font-size: 1.8vw;
+  white-space: nowrap;
+  color: white;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: .55vw;
+  flex: 1;
+}
+.nav button {
+  border: 1px solid transparent;
+  background: #04172ad9;
+  border-radius: 2vw;
+  padding: .7vw .9vw;
+  font-size: 1.13vw;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nav button.selected {
+  background: linear-gradient(135deg,#20dfff,#0481db);
+  color: white;
+  box-shadow: 0 0 17px #00bfff88;
+  border-color: #66eaff;
+}
+.nav button:hover,
+.tile:hover,
+.action:hover {
+  filter: brightness(1.15);
+}
+button:focus {
+  outline: 3px solid #14cfff;
+  outline-offset: 2px;
+  box-shadow: 0 0 15px 4px #07cfffaa;
+}
+header .right {
+  margin-left: auto;
+  font-size: 1.5vw;
+  font-weight: 800;
+  white-space: nowrap;
+}
+#dashboard {
+  display: flex;
+  align-items: center;
+  height: 21vh;
+  gap: 2vw;
+}
+.clock {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.time {
+  font-size: 6.7vw;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.3vw;
+  text-shadow: 0 4px 12px #0006;
+}
+.date {
+  font-size: 1.5vw;
+  font-weight: 700;
+  margin-top: 1vh;
+}
+.weather {
+  width: 50%;
+  border-left: 2px solid #ffffffaa;
+  padding-left: 1.8vw;
+  display: flex;
+  gap: 2vw;
+  align-items: center;
+  justify-content: space-between;
+}
+.now { min-width: 35%; }
+.place {
+  font-weight: 700;
+  font-size: 1.25vw;
+}
+.temperature {
+  font-size: 3.6vw;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.description { font-size: 1.2vw; }
+.forecast {
+  display: flex;
+  gap: .5vw;
+  align-items: center;
+}
+.forecast section {
+  border-left: 1px solid #ffffff65;
+  padding-left: .85vw;
+  text-align: center;
+  min-width: 5.5vw;
+  font-size: 1.13vw;
+}
+.forecast .ico { font-size: 2.1vw; }
+.forecast strong { font-size: 1.2vw; }
+
+.section-title,
+.files-title {
+  font-size: 1.5vw;
+  font-weight: 800;
+  color: #f4fbff;
+  text-shadow: 0 2px 9px #0009;
+}
+.section-title {
+  margin: 1vh 0 .9vh;
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(6,minmax(0,1fr));
+  gap: 1vw;
+}
+.tile {
+  height: 11.2vh;
+  padding: .65vw;
+  border: 1px solid #ffffff70;
+  border-radius: 1.2vw;
+  background: linear-gradient(
+    145deg,#173b67ee,#08192fee
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5vw;
+  text-align: center;
+  font-size: 1.55vw;
+  font-weight: 800;
+  box-shadow: 0 8px 19px #0007;
+}
+.tile.light {
+  background: linear-gradient(150deg,#fff,#dce6f4);
+  color: #141f34;
+}
+.tile.blue {
+  background: linear-gradient(135deg,#174bfa,#04135b);
+}
+.tile.dark {
+  background: linear-gradient(150deg,#10253d,#081323);
+}
+.tile.web {
+  border: 2px solid #4feaff;
+  background: linear-gradient(135deg,#0a4a91,#061b40);
+  box-shadow: 0 0 18px #00bfff;
+}
+#files {
+  border: 2px solid #36d7ff;
+  border-radius: 1.3vw;
+  background: linear-gradient(
+    180deg,#082c52ee,#041428f5
+  );
+  padding: 1vw 1.2vw;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  box-shadow: 0 0 17px #0dbbff88;
+  min-height: 13vh;
+  margin-top: .8vh;
+}
+.files-title {
+  width: 22%;
+}
+.files-title .sub {
+  font-size: 1vw;
+  font-weight: 400;
+  margin-top: .5vh;
+  color: #d8ebf7;
+}
+.action {
+  height: 9vh;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  border: 1px solid #ffffff66;
+  border-radius: 1vw;
+  background: linear-gradient(
+    110deg,#235987ee,#102b4be8
+  );
+  padding: 1vw;
+  text-align: left;
+  font-size: 1.1vw;
+  font-weight: 700;
+}
+.action .symbol { font-size: 2vw; }
+.action small {
+  display: block;
+  font-size: .85vw;
+  font-weight: 400;
+  margin-top: .35vh;
+  color: #d9e8f5;
+}
+#toast {
+  position: fixed;
+  left: 30%;
+  right: 30%;
+  bottom: 15%;
+  text-align: center;
+  background: #081b34ee;
+  border: 1px solid #19d2ff;
+  padding: 1.5vw;
+  border-radius: 1vw;
+  font-size: 1.35vw;
+  display: none;
+}
+#toast.show { display: block; }
+#edit {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #000b;
+  align-items: center;
+  justify-content: center;
+}
+#edit > div {
+  background: #0a203b;
+  padding: 2vw;
+  border-radius: 1vw;
+  width: 40%;
+  border: 1px solid #33dfff;
+}
+#edit input {
+  width: 100%;
+  font-size: 1.4vw;
+  padding: 1vw;
+  margin: 1vh 0;
+  color: black;
+}
+#edit button {
+  background: #1e9ec2;
+  border: 0;
+  border-radius: .6vw;
+  padding: .7vw 1.2vw;
+  margin: .5vw;
+}
+.muted { color: #c6d7e6; }
+</style>
+</head>
+
+<body>
+<div id="scene">
+<svg viewBox="0 0 1600 900" preserveAspectRatio="none">
+<path d="M0 410 L120 315 L205 370 L350 255 L445 340 L600 215 L710 355 L830 260 L1000 385 L1115 265 L1230 352 L1405 245 L1600 395 L1600 900 L0 900Z" fill="#17395b"/>
+<path d="M0 485L155 375L280 440L410 348L560 465L700 325L845 430L980 310L1140 447L1330 355L1600 470L1600 900L0 900Z" fill="#102941"/>
+<path d="M0 575L190 480L340 545L520 430L670 565L855 450L1050 550L1180 460L1400 530L1600 480L1600 900L0 900Z" fill="#081c33"/>
+<path d="M0 665L140 585L280 630L430 560L590 650L795 570L980 660L1130 575L1360 655L1600 580L1600 900L0 900Z" fill="#041528"/>
+</svg>
+</div>
+<div class="shade"></div>
+
 <main>
-<header><div class="logo">◼ BroZam TV</div><nav class="nav"><button onclick="search()">⌕ Vyhledávání</button><button class="selected" onclick="goHome()">⌂ Domů</button><button onclick="allApps()">▦ Aplikace</button></nav><div class="right">◉ &nbsp; <span id="tinyClock">--:--</span></div></header>
-<div id="dashboard"><div class="clock"><div class="time" id="clock">--:--</div><div class="date" id="date">Načítám datum…</div></div><div class="weather"><div class="now"><div class="place">⌾ Ostrožská Lhota</div><div class="temperature" id="temp">--°C</div><div class="description" id="desc">Načítám počasí…</div></div><div class="forecast" id="forecast"><section>3denní předpověď<br><span class="muted">Načítám…</span></section></div></div></div>
-<div><div class="section-title">▦ Aplikace</div><div class="tiles">
-<button class="tile blue" onclick="app('oneplay')">oneplay</button><button class="tile light" onclick="app('netflix')" style="color:#e50914">NETFLIX</button><button class="tile light" onclick="app('youtube')">▶ YouTube</button><button class="tile light" onclick="app('kodi')" style="color:#169dcb">◆ KODI</button><button class="tile light" onclick="app('ct')">◩ ČT</button><button class="tile dark" onclick="app('spotify')" style="color:#1ed760">◉ Spotify</button>
-</div></div>
-<div><div class="section-title">◎ Web a oblíbené weby</div><div class="tiles" id="webTiles">
-<button class="tile web" onclick="browse('https://www.google.com/')">🌐 Webový<br>prohlížeč</button>
-<button class="tile dark" onclick="browse('https://cigar-pilot.web.app/')">🚬 Cigar Pilot</button>
-<button class="tile dark" onclick="browse('https://mylivebeat-dcf59.web.app/')">♫ My Live Beat</button>
-<button class="tile light" onclick="browse('https://www.seznam.cz/')">Seznam.cz</button>
-<button class="tile dark" onclick="browse('https://web.whatsapp.com/')">💬 WhatsApp</button>
-<button class="tile" onclick="addWeb()">＋ Přidat web</button>
-</div></div>
-<div id="files"><div class="files-title">📁 Soubory<div class="sub">Správce souborů</div></div>
-<button class="action" onclick="files()"><span class="symbol">⬇</span><div>Stažené soubory<small>PDF, dokumenty, obrázky</small></div></button>
-<button class="action" onclick="sendLocal()"><span class="symbol">⇄</span><div>Odeslat do PC – LocalSend<small>Přenos po domácí síti</small></div></button>
-<button class="action" onclick="drive()"><span class="symbol">▲</span><div>Nahrát na Google Disk<small>Otevře Disk v prohlížeči</small></div></button></div>
-<div class="footer"><button class="sm" onclick="settings()"><span>⚙</span>Nastavení</button><button class="sm" onclick="files()"><span>▱</span>Soubory</button><button class="sm" onclick="mirror()"><span>▣</span>Miracast</button><button class="sm" onclick="hdmi()"><span>▭</span>HDMI</button><button class="sm" onclick="allApps()"><span>▦</span>Aplikace</button></div>
-</main><div id="toast" role="status"></div><div id="edit"><div><h2>Přidat oblíbený web</h2><input id="webName" placeholder="Název webu"><input id="webUrl" placeholder="https://adresa.cz"><button onclick="saveWeb()">Uložit</button><button onclick="closeEdit()">Zrušit</button></div></div>
+<header>
+  <div class="logo">▣ BroZam TV</div>
+  <nav class="nav">
+    <button onclick="search()">⌕ Vyhledávání</button>
+    <button class="selected" onclick="goHome()">⌂ Domů</button>
+    <button onclick="allApps()">▦ Aplikace</button>
+    <button onclick="settings()">⚙ Nastavení</button>
+    <button onclick="mirror()">▣ Miracast</button>
+    <button onclick="hdmi()">▭ HDMI</button>
+  </nav>
+  <div class="right">◉</div>
+</header>
+
+<div id="dashboard">
+  <div class="clock">
+    <div class="time" id="clock">--:--</div>
+    <div class="date" id="date">Načítám datum…</div>
+  </div>
+
+  <div class="weather">
+    <div class="now">
+      <div class="place">⌾ Ostrožská Lhota</div>
+      <div class="temperature" id="temp">--°C</div>
+      <div class="description" id="desc">Načítám počasí…</div>
+    </div>
+    <div class="forecast" id="forecast">
+      <section>3denní předpověď</section>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="section-title">▦ Aplikace</div>
+  <div class="tiles">
+    <button class="tile blue" onclick="app('oneplay')">oneplay</button>
+    <button class="tile light" onclick="app('netflix')" style="color:#e50914">NETFLIX</button>
+    <button class="tile light" onclick="app('youtube')">▶ YouTube</button>
+    <button class="tile light" onclick="app('kodi')" style="color:#169dcb">◆ KODI</button>
+    <button class="tile light" onclick="app('ct')">◩ ČT</button>
+    <button class="tile dark" onclick="app('spotify')" style="color:#1ed760">◉ Spotify</button>
+  </div>
+</div>
+
+<div>
+  <div class="section-title">◎ Webové stránky</div>
+  <div class="tiles" id="webTiles">
+    <button class="tile web" onclick="browse('https://www.google.com/')">🌐 Webový prohlížeč</button>
+    <button class="tile dark" onclick="browse('https://cigar-pilot.web.app/')">🚬 Cigar Pilot</button>
+    <button class="tile dark" onclick="browse('https://mylivebeat-dcf59.web.app/')">♫ My Live Beat</button>
+    <button class="tile light" onclick="browse('https://www.seznam.cz/')">Seznam.cz</button>
+    <button class="tile dark" onclick="browse('https://web.whatsapp.com/')">💬 WhatsApp Web</button>
+    <button class="tile" onclick="addWeb()">＋ Přidat web</button>
+  </div>
+</div>
+
+<div id="files">
+  <div class="files-title">
+    📁 Správce souborů
+    <div class="sub">Stažené a sdílené soubory</div>
+  </div>
+
+  <button class="action" onclick="files()">
+    <span class="symbol">⬇</span>
+    <div>Stažené soubory
+      <small>PDF, dokumenty, obrázky</small>
+    </div>
+  </button>
+
+  <button class="action" onclick="sendLocal()">
+    <span class="symbol">⇄</span>
+    <div>Odeslat do PC – LocalSend
+      <small>Přenos po domácí síti</small>
+    </div>
+  </button>
+
+  <button class="action" onclick="drive()">
+    <span class="symbol">▲</span>
+    <div>Nahrát na Google Disk
+      <small>Otevře Disk v prohlížeči</small>
+    </div>
+  </button>
+</div>
+</main>
+
+<div id="toast" role="status"></div>
+
+<div id="edit">
+  <div>
+    <h2>Přidat oblíbený web</h2>
+    <input id="webName" placeholder="Název webu">
+    <input id="webUrl" placeholder="https://adresa.cz">
+    <button onclick="saveWeb()">Uložit</button>
+    <button onclick="closeEdit()">Zrušit</button>
+  </div>
+</div>
+
 <script>
-'use strict';const hasTV=()=>typeof TV!=='undefined';function call(name,...args){if(hasTV()&&TV[name])return TV[name](...args);return false}function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3600)}
-function app(name){if(!hasTV()){toast('Na televizi se spustí aplikace '+name);return;}call('app',name)}
-function browse(url){if(hasTV())call('browse',url);else window.open(url,'_blank','noopener')}
-function files(){if(hasTV())call('files');else toast('Na TV se otevře systémový výběr souborů')}
-function drive(){if(hasTV())call('share','drive');else browse('https://drive.google.com/drive/u/0/my-drive')}
-function sendLocal(){if(hasTV())call('share','localsend');else toast('Na TV se spustí LocalSend, pokud je nainstalovaný')}
-function settings(){if(hasTV())call('settings');else toast('Nastavení televize')}
-function allApps(){if(hasTV())call('apps');else toast('Seznam aplikací v televizi')}
-function mirror(){if(hasTV())call('mirroring');else toast('Použij nabídku vstupů TCL')}
-function hdmi(){if(hasTV())call('hdmi');else toast('Použij tlačítko Input na ovladači TCL')}
-function goHome(){window.scrollTo(0,0)}function search(){browse('https://www.google.com/')}
-const weekdays=['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];const months=['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];function pad(n){return String(n).padStart(2,'0')}
-function clock(){const d=new Date();let s=pad(d.getHours())+':'+pad(d.getMinutes());document.getElementById('clock').textContent=s;document.getElementById('tinyClock').textContent=s;let w=weekdays[d.getDay()];document.getElementById('date').textContent=w[0].toUpperCase()+w.slice(1)+', '+d.getDate()+'. '+months[d.getMonth()]+' '+d.getFullYear()}clock();setInterval(clock,10000);
-const weatherLabels=[[0,'Jasno','☀️'],[1,'Převážně jasno','🌤️'],[2,'Polojasno','⛅'],[3,'Zataženo','☁️'],[45,'Mlha','🌫️'],[48,'Mlha','🌫️'],[51,'Mrholení','🌦️'],[61,'Déšť','🌧️'],[63,'Déšť','🌧️'],[65,'Silný déšť','🌧️'],[71,'Sníh','🌨️'],[73,'Sníh','🌨️'],[75,'Sníh','❄️'],[80,'Přeháňky','🌦️'],[95,'Bouřky','⛈️']];function weatherIcon(code){let row=weatherLabels.find(x=>x[0]===code);return row||[code,'Proměnlivo','🌤️']}
-function setWeather(d){try{const c=d.current,dy=d.daily;document.getElementById('temp').textContent=Math.round(c.temperature_2m)+'°C';let v=weatherIcon(c.weather_code);document.getElementById('desc').textContent=v[2]+' '+v[1];const days=['Ne','Po','Út','St','Čt','Pá','So'];document.getElementById('forecast').innerHTML=dy.time.slice(0,3).map((day,i)=>{const date=new Date(day+'T12:00:00');return '<section><div>'+days[date.getDay()]+' '+date.getDate()+'. '+(date.getMonth()+1)+'.</div><div class="ico">'+weatherIcon(dy.weather_code[i])[2]+'</div><strong>'+Math.round(dy.temperature_2m_max[i])+'° / '+Math.round(dy.temperature_2m_min[i])+'°</strong></section>'}).join('')}catch(e){weatherError()}}
-function weatherError(){document.getElementById('desc').textContent='Počasí není dostupné'}
-if(!hasTV())fetch('https://api.open-meteo.com/v1/forecast?latitude=48.98&longitude=17.47&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FPrague&forecast_days=3').then(r=>r.json()).then(setWeather).catch(weatherError);
-function closeEdit(){document.getElementById('edit').style.display='none'}function addWeb(){document.getElementById('edit').style.display='flex';document.getElementById('webName').focus()}
-function safeUrl(url){try{let u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:null}catch(e){return null}}
-function saveWeb(){let name=document.getElementById('webName').value.trim(),url=safeUrl(document.getElementById('webUrl').value.trim());if(!name||!url){toast('Zadej název a platnou adresu https://…');return}let sites=JSON.parse(localStorage.getItem('sites')||'[]');sites.push({name,url});localStorage.setItem('sites',JSON.stringify(sites));renderCustom();closeEdit()}
-function renderCustom(){document.querySelectorAll('.custom-site').forEach(e=>e.remove());let sites=JSON.parse(localStorage.getItem('sites')||'[]');sites.forEach(site=>{let b=document.createElement('button');b.className='tile dark custom-site';b.textContent=site.name;b.addEventListener('click',()=>browse(site.url));document.getElementById('webTiles').appendChild(b)})}renderCustom();
-</script></body></html>
+'use strict';
+
+const hasTV = () => typeof TV !== 'undefined';
+
+function call(name, ...args) {
+  if (hasTV() && TV[name]) {
+    return TV[name](...args);
+  }
+  return false;
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3600);
+}
+
+function app(name) {
+  if (!hasTV()) {
+    toast('Na televizi se spustí aplikace ' + name);
+    return;
+  }
+  call('app', name);
+}
+
+function browse(url) {
+  if (hasTV()) {
+    call('browse', url);
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
+}
+
+function files() {
+  if (hasTV()) {
+    call('files');
+  } else {
+    toast('Na TV se otevře systémový výběr souborů');
+  }
+}
+
+function drive() {
+  if (hasTV()) {
+    call('share', 'drive');
+  } else {
+    browse('https://drive.google.com/drive/u/0/my-drive');
+  }
+}
+
+function sendLocal() {
+  if (hasTV()) {
+    call('share', 'localsend');
+  } else {
+    toast('Na TV se spustí LocalSend');
+  }
+}
+
+function settings() {
+  if (hasTV()) call('settings');
+  else toast('Nastavení televize');
+}
+
+function allApps() {
+  if (hasTV()) call('apps');
+  else toast('Seznam aplikací');
+}
+
+function mirror() {
+  if (hasTV()) call('mirroring');
+  else toast('Použij nabídku vstupů TCL');
+}
+
+function hdmi() {
+  if (hasTV()) call('hdmi');
+  else toast('Použij tlačítko Input na ovladači');
+}
+
+function goHome() {
+  window.scrollTo(0, 0);
+}
+
+function search() {
+  browse('https://www.google.com/');
+}
+
+const weekdays = [
+  'neděle','pondělí','úterý','středa',
+  'čtvrtek','pátek','sobota'
+];
+
+const months = [
+  'ledna','února','března','dubna',
+  'května','června','července','srpna',
+  'září','října','listopadu','prosince'
+];
+
+function pad(n) {
+  return String(n).padStart(2, '0');
+}
+
+function clock() {
+  const d = new Date();
+  const s = pad(d.getHours()) + ':' + pad(d.getMinutes());
+
+  document.getElementById('clock').textContent = s;
+
+  const w = weekdays[d.getDay()];
+  document.getElementById('date').textContent =
+    w[0].toUpperCase() + w.slice(1) + ', ' +
+    d.getDate() + '. ' + months[d.getMonth()] +
+    ' ' + d.getFullYear();
+}
+
+clock();
+setInterval(clock, 10000);
+
+const weatherLabels = [
+  [0,'Jasno','☀️'],
+  [1,'Převážně jasno','🌤️'],
+  [2,'Polojasno','⛅'],
+  [3,'Zataženo','☁️'],
+  [45,'Mlha','🌫️'],
+  [48,'Mlha','🌫️'],
+  [51,'Mrholení','🌦️'],
+  [61,'Déšť','🌧️'],
+  [63,'Déšť','🌧️'],
+  [65,'Silný déšť','🌧️'],
+  [71,'Sníh','🌨️'],
+  [73,'Sníh','🌨️'],
+  [75,'Sníh','❄️'],
+  [80,'Přeháňky','🌦️'],
+  [95,'Bouřky','⛈️']
+];
+
+function weatherIcon(code) {
+  return weatherLabels.find(x => x[0] === code) ||
+    [code, 'Proměnlivo', '🌤️'];
+}
+
+function setWeather(d) {
+  try {
+    const c = d.current;
+    const dy = d.daily;
+
+    document.getElementById('temp').textContent =
+      Math.round(c.temperature_2m) + '°C';
+
+    const v = weatherIcon(c.weather_code);
+
+    document.getElementById('desc').textContent =
+      v[2] + ' ' + v[1];
+
+    const days = ['Ne','Po','Út','St','Čt','Pá','So'];
+
+    document.getElementById('forecast').innerHTML =
+      dy.time.slice(0, 3).map((day, i) => {
+        const date = new Date(day + 'T12:00:00');
+
+        return '<section>' +
+          '<div>' + days[date.getDay()] + ' ' +
+          date.getDate() + '. ' +
+          (date.getMonth() + 1) + '.</div>' +
+          '<div class="ico">' +
+          weatherIcon(dy.weather_code[i])[2] + '</div>' +
+          '<strong>' +
+          Math.round(dy.temperature_2m_max[i]) + '° / ' +
+          Math.round(dy.temperature_2m_min[i]) + '°' +
+          '</strong></section>';
+      }).join('');
+
+  } catch (e) {
+    weatherError();
+  }
+}
+
+function weatherError() {
+  document.getElementById('desc').textContent =
+    'Počasí není dostupné';
+}
+
+if (!hasTV()) {
+  fetch(
+    'https://api.open-meteo.com/v1/forecast' +
+    '?latitude=48.98&longitude=17.47' +
+    '&current=temperature_2m,weather_code' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+    '&timezone=Europe%2FPrague&forecast_days=3'
+  )
+  .then(r => r.json())
+  .then(setWeather)
+  .catch(weatherError);
+}
+
+function closeEdit() {
+  document.getElementById('edit').style.display = 'none';
+}
+
+function addWeb() {
+  document.getElementById('edit').style.display = 'flex';
+  document.getElementById('webName').focus();
+}
+
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    return ['https:', 'http:'].includes(u.protocol)
+      ? u.href : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveWeb() {
+  const name = document.getElementById('webName')
+    .value.trim();
+
+  const url = safeUrl(
+    document.getElementById('webUrl').value.trim()
+  );
+
+  if (!name || !url) {
+    toast('Zadej název a platnou adresu https://…');
+    return;
+  }
+
+  const sites = JSON.parse(
+    localStorage.getItem('sites') || '[]'
+  );
+
+  sites.push({name, url});
+
+  localStorage.setItem('sites', JSON.stringify(sites));
+
+  renderCustom();
+  closeEdit();
+}
+
+function renderCustom() {
+  document.querySelectorAll('.custom-site')
+    .forEach(e => e.remove());
+
+  const sites = JSON.parse(
+    localStorage.getItem('sites') || '[]'
+  );
+
+  sites.forEach(site => {
+    const b = document.createElement('button');
+    b.className = 'tile dark custom-site';
+    b.textContent = site.name;
+
+    b.addEventListener('click', () => browse(site.url));
+
+    document.getElementById('webTiles').appendChild(b);
+  });
+}
+
+renderCustom();
+</script>
+</body>
+</html>
