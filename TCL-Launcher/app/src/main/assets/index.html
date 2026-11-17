@@ -312,6 +312,15 @@ header .right {
   margin: .5vw;
 }
 .muted { color: #c6d7e6; }
+
+.apps-heading{display:flex;align-items:center;justify-content:space-between}
+#sortApps{background:#123d68;border:1px solid #56dfff;border-radius:.7vw;padding:.35vw .9vw;font-size:1.06vw;font-weight:700}
+.order-backdrop{display:none;position:fixed;inset:0;z-index:20;background:#000c;align-items:center;justify-content:center}
+.order-panel{width:min(760px,85vw);max-height:85vh;overflow:auto;padding:28px;border:2px solid #38dafa;border-radius:20px;background:#091c35;box-shadow:0 0 30px #13cfff66}
+.order-panel h2{margin:0 0 10px}.order-panel p{font-size:19px;color:#d9eaf7;margin:0 0 18px}
+.order-row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff33;font-size:22px}
+.order-row .app-name{flex:1}.order-row button,.order-close{min-width:60px;min-height:45px;border:1px solid #6be7ff;border-radius:10px;background:#124875;font-size:21px;font-weight:bold}
+.order-row button:disabled{opacity:.35}.order-close{display:block;margin:22px 0 0 auto;padding:10px 25px}
 </style>
 </head>
 
@@ -337,7 +346,7 @@ header .right {
     <button onclick="mirror()">▣ Miracast</button>
     <button onclick="hdmi()">▭ HDMI</button>
   </nav>
-  <div class="right">◉</div>
+  
 </header>
 
 <div id="dashboard">
@@ -359,14 +368,14 @@ header .right {
 </div>
 
 <div>
-  <div class="section-title">▦ Aplikace</div>
-  <div class="tiles">
-    <button class="tile blue" onclick="app('oneplay')">oneplay</button>
-    <button class="tile light" onclick="app('netflix')" style="color:#e50914">NETFLIX</button>
-    <button class="tile light" onclick="app('youtube')">▶ YouTube</button>
-    <button class="tile light" onclick="app('kodi')" style="color:#169dcb">◆ KODI</button>
-    <button class="tile light" onclick="app('ct')">◩ ČT</button>
-    <button class="tile dark" onclick="app('spotify')" style="color:#1ed760">◉ Spotify</button>
+  <div class="section-title apps-heading">▦ Aplikace <button id="sortApps" onclick="openOrder()">↕ Pořadí aplikací</button></div>
+  <div class="tiles" id="appTiles">
+    <button class="tile blue" data-app="oneplay" onclick="app('oneplay')">oneplay</button>
+    <button class="tile light" data-app="netflix" onclick="app('netflix')" style="color:#e50914">NETFLIX</button>
+    <button class="tile light" data-app="youtube" onclick="app('youtube')">▶ YouTube</button>
+    <button class="tile light" data-app="kodi" onclick="app('kodi')" style="color:#169dcb">◆ KODI</button>
+    <button class="tile light" data-app="ct" onclick="app('ct')">◩ ČT</button>
+    <button class="tile dark" data-app="spotify" onclick="app('spotify')" style="color:#1ed760">◉ Spotify</button>
   </div>
 </div>
 
@@ -412,6 +421,14 @@ header .right {
 </main>
 
 <div id="toast" role="status"></div>
+<div id="orderModal" class="order-backdrop" role="dialog" aria-label="Pořadí aplikací">
+  <div class="order-panel">
+    <h2>↕ Pořadí aplikací</h2>
+    <p>Šipkami ↑ a ↓ změň pořadí. Uloží se automaticky.</p>
+    <div id="orderRows"></div>
+    <button class="order-close" onclick="closeOrder()">Hotovo</button>
+  </div>
+</div>
 
 <div id="edit">
   <div>
@@ -682,6 +699,64 @@ function renderCustom() {
 }
 
 renderCustom();
+
+// Pořadí aplikací se ukládá pouze v BroZam TV, nezasahuje do systému Google TV.
+const defaultAppNames = {oneplay:'Oneplay',netflix:'Netflix',youtube:'YouTube',kodi:'Kodi',ct:'ČT',spotify:'Spotify'};
+function appOrder(){
+  const keys=Object.keys(defaultAppNames);
+  let saved=[];
+  try {saved=JSON.parse(localStorage.getItem('brozamAppOrder')||'[]');}catch(e){}
+  if(!Array.isArray(saved))saved=[];
+  return [...new Set([...saved.filter(k=>keys.includes(k)),...keys])];
+}
+function paintAppOrder(){
+ const root=document.getElementById('appTiles');
+ const tiles=Object.fromEntries([...root.children].map(el=>[el.dataset.app,el]));
+ appOrder().forEach(k=>{if(tiles[k])root.appendChild(tiles[k]);});
+}
+function openOrder(){
+ document.getElementById('orderModal').style.display='flex';
+ paintOrderRows();
+ const btn=document.querySelector('#orderRows button:not(:disabled)');if(btn)btn.focus();
+}
+function closeOrder(){document.getElementById('orderModal').style.display='none';document.getElementById('sortApps').focus();}
+function moveApp(key,delta){
+ const order=appOrder(),i=order.indexOf(key),j=i+delta;
+ if(i<0||j<0||j>=order.length)return;
+ [order[i],order[j]]=[order[j],order[i]];
+ localStorage.setItem('brozamAppOrder',JSON.stringify(order));
+ paintAppOrder();paintOrderRows();
+ const b=document.querySelector('[data-move="'+key+':'+delta+'"]');if(b)b.focus();
+}
+function paintOrderRows(){
+ const root=document.getElementById('orderRows');root.textContent='';
+ const order=appOrder();
+ order.forEach((key,i)=>{
+  const row=document.createElement('div');row.className='order-row';
+  const name=document.createElement('span');name.className='app-name';name.textContent=defaultAppNames[key];row.appendChild(name);
+  for(const delta of [-1,1]){
+   const btn=document.createElement('button');btn.textContent=delta<0?'↑':'↓';
+   btn.dataset.move=key+':'+delta;btn.disabled=(i+delta<0||i+delta>=order.length);
+   btn.setAttribute('aria-label','Posunout '+defaultAppNames[key]+(delta<0?' nahoru':' dolů'));
+   btn.onclick=()=>moveApp(key,delta);row.appendChild(btn);
+  }
+  root.appendChild(row);
+ });
+}
+paintAppOrder();
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&document.getElementById('orderModal').style.display==='flex')closeOrder();
+});
+
+// Aktualizace počasí každých 30 minut při otevřené úvodní obrazovce.
+function refreshWeather(){
+ if(document.hidden)return;
+ if(hasTV())call('weather');
+ else fetch('https://api.open-meteo.com/v1/forecast?latitude=48.98&longitude=17.47&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FPrague&forecast_days=3')
+  .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(setWeather).catch(weatherError);
+}
+setInterval(refreshWeather,30*60*1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshWeather();});
 </script>
 </body>
 </html>
