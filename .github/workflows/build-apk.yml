@@ -30,22 +30,15 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Zkontrolovat Android SDK
-        run: |
-          echo "Android SDK: $ANDROID_HOME"
-          test -d "$ANDROID_HOME"
-          test -f "TCL odpalovač/settings.gradle"
-          test -f "TCL odpalovač/build.gradle"
-
-      - name: Sestavit APK
+      - name: Sestavit Android APK
         working-directory: TCL odpalovač
         run: |
-          gradle --no-daemon --stacktrace :app:assembleDebug
+          gradle --no-daemon --stacktrace assembleDebug
 
       - name: Ulozit APK
         uses: actions/upload-artifact@v4
         with:
           name: BroZam-TV-APK
-          path: TCL odpalovač/app/build/outputs/apk/debug/app-debug.apk
+          path: TCL odpalovač/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
