@@ -1,7 +1,12 @@
-
 plugins {
     id 'com.android.application'
 }
+
+// Pevný podpisový klíč z GitHub Secrets (viz README, „Podpisový klíč“).
+// Když klíč není nastavený, APK se podepíše dočasným klíčem jako dřív.
+def brozamKeystore = System.getenv('BROZAM_KEYSTORE_FILE')
+def brozamPassword = System.getenv('BROZAM_KEYSTORE_PASSWORD')
+def hasBrozamKey = brozamKeystore && brozamPassword && file(brozamKeystore).exists()
 
 android {
     namespace 'cz.brozam.tvlauncher'
@@ -11,7 +16,26 @@ android {
         applicationId 'cz.brozam.tvlauncher'
         minSdk 26
         targetSdk 35
-        versionCode 3
-        versionName '0.3.0'
+        versionCode 4
+        versionName '0.4.0'
+    }
+
+    signingConfigs {
+        if (hasBrozamKey) {
+            brozam {
+                storeFile file(brozamKeystore)
+                storePassword brozamPassword
+                keyAlias 'brozam'
+                keyPassword brozamPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            if (hasBrozamKey) {
+                signingConfig signingConfigs.brozam
+            }
+        }
     }
 }

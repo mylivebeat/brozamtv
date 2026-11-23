@@ -6,11 +6,16 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
+import android.webkit.RenderProcessGoneDetail;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
@@ -21,11 +26,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MainActivity extends Activity {
 
     private static final int REQ_FILE = 101;
 
+    private static final String HOME_PAGE =
+        "file:///android_asset/index.html";
+
+    // forecast_days=4: dnešek + 3 další dny (stránka ukazuje zítřek a dál)
     private static final String WEATHER_URL =
         "https://api.open-meteo.com/v1/forecast"
         + "?latitude=48.98"
@@ -35,13 +45,23 @@ public class MainActivity extends Activity {
         + "temperature_2m_max,"
         + "temperature_2m_min"
         + "&timezone=Europe%2FPrague"
-        + "&forecast_days=3";
+        + "&forecast_days=4";
 
     private static final String DRIVE_URL =
         "https://drive.google.com/drive/u/0/my-drive";
 
+    private static final long WEATHER_RETRY_MS = 60_000;
+    private static final int WEATHER_MAX_RETRIES = 5;
+    private static final long WEATHER_MAX_AGE_MS = 30 * 60_000;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final AtomicBoolean weatherLoading = new AtomicBoolean(false);
+
     private WebView ui;
     private boolean pageReady = false;
+    private int weatherRetries = 0;
+    private long lastWeatherOk = 0;
+    private volatile String lastAppSignature = null;
 
     // Klíč dlaždice a možné názvy balíčků (první nalezený se použije).
     private final String[][] apps = {
@@ -51,7 +71,7 @@ public class MainActivity extends Activity {
             "com.google.android.youtube"},
         {"kodi", "org.xbmc.kodi"},
         {"ct", "cz.ceskatelevize.ivysilani",
-            "cz.ceskatelevize.androidtv"},
+            "cz.ceskatelevize.androidtv", "cz.motion.ivysilani"},
         {"spotify", "com.spotify.tv.android",
             "com.spotify.music"},
         {"localsend", "org.localsend.localsend_app"}
@@ -67,12 +87,12 @@ public class MainActivity extends Activity {
 
         ui = new WebView(this);
 
+        // Tmavé pozadí hned od startu (bez bílého bliknutí).
+        ui.setBackgroundColor(Color.rgb(3, 17, 38));
+
         ui.getSettings().setJavaScriptEnabled(true);
         ui.getSettings().setDomStorageEnabled(true);
-        ui.getSettings().setAllowFileAccess(true);
 
-        // Počasí a ikony aplikací se posílají až po načtení stránky,
-        // jinak by se výsledek mohl ztratit.
         ui.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
@@ -83,24 +103,80 @@ public class MainActivity extends Activity {
                 fetchWeather();
                 loadAppImages();
             }
+
+            // Hlavní stránka má přístup k funkcím aplikace (objekt TV),
+            // proto nesmí přejít na cizí web. Odkazy jdou do prohlížeče.
+            @Override
+            public boolean shouldOverrideUrlLoading(
+                WebView view, WebResourceRequest req) {
+                String url = req.getUrl().toString();
+
+                if (url.startsWith("file:///android_asset/")) {
+                    return false;
+                }
+                if (url.startsWith("https://")
+                    || url.startsWith("http://")) {
+                    openInBrowser(url);
+                }
+                return true;
+            }
+
+            // Když spadne vykreslování stránky, aplikace nespadne,
+            // jen se obrazovka načte znovu.
+            @Override
+            public boolean onRenderProcessGone(
+                WebView view, RenderProcessGoneDetail detail) {
+                if (ui != null) {
+                    ui.destroy();
+                    ui = null;
+                }
+                recreate();
+                return true;
+            }
         });
 
         ui.addJavascriptInterface(new Bridge(), "TV");
 
         setContentView(ui);
+        ui.requestFocus();
 
-        ui.loadUrl("file:///android_asset/index.html");
+        ui.loadUrl(HOME_PAGE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        // Po návratu z jiné aplikace obnovit dlaždice
-        // (aplikace mohla být mezitím nainstalovaná nebo odinstalovaná).
-        if (pageReady) {
-            loadAppImages();
+        if (!pageReady) {
+            return;
         }
+
+        // Po návratu z jiné aplikace: obnovit dlaždice (jen při změně)
+        // a počasí, pokud je starší než 30 minut.
+        loadAppImages();
+
+        if (System.currentTimeMillis() - lastWeatherOk
+            > WEATHER_MAX_AGE_MS) {
+            fetchWeather();
+        }
+    }
+
+    // Tlačítko Zpět: nejdřív zavřít otevřené okno ve stránce,
+    // teprve potom odejít z aplikace.
+    @Override
+    public void onBackPressed() {
+        if (ui == null || !pageReady) {
+            super.onBackPressed();
+            return;
+        }
+
+        ui.evaluateJavascript(
+            "!!(window.handleBack && window.handleBack())",
+            value -> {
+                if (!"true".equals(value)) {
+                    super.onBackPressed();
+                }
+            });
     }
 
     private void runJs(String js) {
@@ -129,9 +205,16 @@ public class MainActivity extends Activity {
         }
     }
 
+    // ----- Počasí -----
+
     private void fetchWeather() {
+        if (!weatherLoading.compareAndSet(false, true)) {
+            return;
+        }
+
         new Thread(() -> {
             HttpURLConnection c = null;
+            boolean ok = false;
 
             try {
                 c = (HttpURLConnection)
@@ -157,6 +240,7 @@ public class MainActivity extends Activity {
                 ).toString();
 
                 runJs("window.setWeather(" + json + ")");
+                ok = true;
 
             } catch (Exception e) {
                 runJs("window.weatherError()");
@@ -165,9 +249,31 @@ public class MainActivity extends Activity {
                 if (c != null) {
                     c.disconnect();
                 }
+                weatherLoading.set(false);
             }
+
+            final boolean success = ok;
+            handler.post(() -> onWeatherDone(success));
         }).start();
     }
+
+    // Po zapnutí TV často ještě není síť: zkusit znovu za minutu
+    // (nejvýše 5×), pak už jen běžná obnova každých 30 minut.
+    private void onWeatherDone(boolean success) {
+        if (success) {
+            weatherRetries = 0;
+            lastWeatherOk = System.currentTimeMillis();
+            handler.removeCallbacks(weatherRetry);
+        } else if (weatherRetries < WEATHER_MAX_RETRIES) {
+            weatherRetries++;
+            handler.removeCallbacks(weatherRetry);
+            handler.postDelayed(weatherRetry, WEATHER_RETRY_MS);
+        }
+    }
+
+    private final Runnable weatherRetry = this::fetchWeather;
+
+    // ----- Spouštění aplikací -----
 
     private Intent launchIntent(String pkg) {
         PackageManager pm = getPackageManager();
@@ -258,9 +364,37 @@ public class MainActivity extends Activity {
             + Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
     }
 
+    // Otisk nainstalovaných aplikací (balík + čas aktualizace).
+    // Bannery se znovu posílají jen tehdy, když se otisk změní.
+    private String appSignature(PackageManager pm) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String[] entry : apps) {
+            String pkg = installedPackage(entry);
+            sb.append(entry[0]).append('=');
+
+            if (pkg != null) {
+                sb.append(pkg);
+                try {
+                    sb.append('@').append(
+                        pm.getPackageInfo(pkg, 0).lastUpdateTime);
+                } catch (Exception ignored) {
+                }
+            }
+            sb.append(';');
+        }
+        return sb.toString();
+    }
+
     private void loadAppImages() {
         new Thread(() -> {
             PackageManager pm = getPackageManager();
+
+            String signature = appSignature(pm);
+            if (signature.equals(lastAppSignature)) {
+                return;
+            }
+
             JSONObject result = new JSONObject();
 
             for (String[] entry : apps) {
@@ -288,6 +422,7 @@ public class MainActivity extends Activity {
                 }
             }
 
+            lastAppSignature = signature;
             runJs("window.setAppImages && window.setAppImages("
                 + result + ")");
         }).start();
@@ -326,6 +461,20 @@ public class MainActivity extends Activity {
         safeStart(i, "Prohlížeč se nepodařilo otevřít");
     }
 
+    // Google Disk: Google blokuje přihlášení ve vestavěných
+    // prohlížečích, proto nejdřív zkusit jiný prohlížeč v TV
+    // (např. Chrome). Když žádný není, otevřít vestavěný.
+    private void openDrive() {
+        Intent ext = new Intent(Intent.ACTION_VIEW, Uri.parse(DRIVE_URL));
+        ext.addCategory(Intent.CATEGORY_BROWSABLE);
+
+        if (!safeStart(ext, null)) {
+            toast("V TV není jiný prohlížeč. Přihlášení Google "
+                + "ve vestavěném prohlížeči nemusí fungovat.");
+            openInBrowser(DRIVE_URL);
+        }
+    }
+
     public class Bridge {
 
         @JavascriptInterface
@@ -359,7 +508,7 @@ public class MainActivity extends Activity {
                 if ("localsend".equals(kind)) {
                     startApp("localsend");
                 } else if ("drive".equals(kind)) {
-                    openInBrowser(DRIVE_URL);
+                    openDrive();
                 }
             });
         }
@@ -383,10 +532,22 @@ public class MainActivity extends Activity {
         public void weather() {
             fetchWeather();
         }
+
+        @JavascriptInterface
+        public String version() {
+            try {
+                return getPackageManager()
+                    .getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "";
+            }
+        }
     }
 
     @Override
     protected void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+
         if (ui != null) {
             ui.destroy();
             ui = null;

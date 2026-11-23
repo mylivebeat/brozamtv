@@ -7,6 +7,9 @@
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
 
     <queries>
         <package android:name="cz.o2.oneplay" />
@@ -18,27 +21,36 @@
         <package android:name="org.xbmc.kodi" />
         <package android:name="cz.ceskatelevize.ivysilani" />
         <package android:name="cz.ceskatelevize.androidtv" />
+        <package android:name="cz.motion.ivysilani" />
         <package android:name="com.spotify.tv.android" />
         <package android:name="com.spotify.music" />
         <package android:name="org.localsend.localsend_app" />
     </queries>
 
+    <!--
+      usesCleartextTraffic="true": vlastní weby mohou být i http://
+      (např. router nebo kamera v domácí síti).
+      configChanges: připojení klávesnice/myši nesmí restartovat okna
+      (prohlížeč by ztratil otevřenou stránku).
+    -->
     <application
         android:allowBackup="true"
-        android:theme="@android:style/Theme.Material.NoActionBar"
+        android:theme="@style/BroZamTheme"
         android:label="BroZam TV"
-        android:usesCleartextTraffic="false"
+        android:usesCleartextTraffic="true"
         android:banner="@drawable/banner">
 
         <activity
             android:name=".BrowserActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|density" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="landscape"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|smallestScreenSize|screenLayout|uiMode|density">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -30,6 +30,33 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Pripravit podpisovy klic
+        shell: bash
+        env:
+          KEYSTORE_B64: ${{ secrets.BROZAM_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.BROZAM_KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KS="$RUNNER_TEMP/brozam-tv.jks"
+
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$KS"
+            PW="$KEYSTORE_PASSWORD"
+            echo "Pevny podpisovy klic pripraven."
+          else
+            # Bez secrets: docasny klic (jako drive), aktualizace pres
+            # starou verzi pak nejde a v TV je nutne ji odinstalovat.
+            PW=$(openssl rand -hex 16)
+            echo "::add-mask::$PW"
+            keytool -genkeypair -keystore "$KS" -storetype PKCS12 \
+              -alias brozam -keyalg RSA -keysize 2048 -validity 365 \
+              -storepass "$PW" -keypass "$PW" -dname "CN=BroZam TV docasny" >/dev/null 2>&1
+            echo "::warning::Chybi secrets BROZAM_KEYSTORE_B64 / BROZAM_KEYSTORE_PASSWORD - APK je podepsane docasnym klicem."
+          fi
+
+          echo "BROZAM_KEYSTORE_FILE=$KS" >> "$GITHUB_ENV"
+          echo "BROZAM_KEYSTORE_PASSWORD=$PW" >> "$GITHUB_ENV"
+
       - name: Najit projekt a sestavit APK
         shell: bash
         run: |
@@ -68,6 +95,15 @@ jobs:
             echo "CHYBA: APK nebylo nalezeno."
             exit 1
           fi
+
+      - name: Overit podpis APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          for f in apk-output/*.apk; do
+            "$APKSIGNER" verify --print-certs "$f" | grep -E "Signer #1 certificate (DN|SHA-256)"
+          done
 
       - name: Ulozit APK
         uses: actions/upload-artifact@v4

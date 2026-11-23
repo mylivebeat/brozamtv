@@ -307,6 +307,7 @@ header .right {
 }
 #toast {
   position: fixed;
+  z-index: 30;
   left: 30%;
   right: 30%;
   bottom: 15%;
@@ -323,7 +324,8 @@ header .right {
   display: none;
   position: fixed;
   inset: 0;
-  background: #000b;
+  z-index: 20;
+  background: #000c;
   align-items: center;
   justify-content: center;
 }
@@ -331,22 +333,60 @@ header .right {
   background: #0a203b;
   padding: 2vw;
   border-radius: 1vw;
-  width: 40%;
-  border: 1px solid #33dfff;
+  width: 52%;
+  max-height: 88vh;
+  overflow: auto;
+  border: 2px solid #33dfff;
+  box-shadow: 0 0 30px #13cfff66;
 }
+#edit h2 { margin: 0 0 1vh; font-size: 1.8vw; }
+#edit h3 { margin: 2.5vh 0 .5vh; font-size: 1.4vw; }
 #edit input {
   width: 100%;
   font-size: 1.4vw;
   padding: 1vw;
   margin: 1vh 0;
   color: black;
+  border-radius: .5vw;
+  border: 0;
+}
+#edit input:focus {
+  outline: 3px solid #14cfff;
+  box-shadow: 0 0 15px 4px #07cfffaa;
 }
 #edit button {
   background: #1e9ec2;
   border: 0;
   border-radius: .6vw;
   padding: .7vw 1.2vw;
-  margin: .5vw;
+  margin: .5vw .5vw .5vw 0;
+  font-size: 1.2vw;
+  font-weight: 700;
+}
+#edit button.danger { background: #a3263a; }
+.site-row {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  padding: .6vh 0;
+  border-bottom: 1px solid #ffffff33;
+}
+.site-row .site-info { flex: 1; min-width: 0; }
+.site-row .site-name { font-size: 1.3vw; font-weight: 700; }
+.site-row .site-url {
+  font-size: .95vw;
+  color: #b9cfe2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#version {
+  position: fixed;
+  right: 2.4vw;
+  bottom: 1vh;
+  font-size: .85vw;
+  color: #ffffff66;
+  pointer-events: none;
 }
 .muted { color: #c6d7e6; }
 
@@ -464,15 +504,23 @@ header .right {
   </div>
 </div>
 
-<div id="edit">
+<div id="edit" role="dialog" aria-label="Moje weby">
   <div>
-    <h2>Přidat oblíbený web</h2>
+    <h2 id="editTitle">＋ Přidat web</h2>
     <input id="webName" placeholder="Název webu">
-    <input id="webUrl" placeholder="https://adresa.cz">
-    <button onclick="saveWeb()">Uložit</button>
-    <button onclick="closeEdit()">Zrušit</button>
+    <input id="webUrl" placeholder="adresa.cz nebo https://adresa.cz">
+    <div>
+      <button onclick="saveWeb()">Uložit</button>
+      <button onclick="closeEdit()">Zavřít</button>
+    </div>
+    <div id="siteListBox">
+      <h3>Moje weby</h3>
+      <div id="siteList"></div>
+    </div>
   </div>
 </div>
+
+<div id="version"></div>
 
 <script>
 'use strict';
@@ -612,8 +660,12 @@ function setWeather(d) {
 
     const days = ['Ne','Po','Út','St','Čt','Pá','So'];
 
+    // Dnešek je vlevo jako aktuální počasí, předpověď začíná zítřkem.
+    const start = dy.time.length > 3 ? 1 : 0;
+
     document.getElementById('forecast').innerHTML =
-      dy.time.slice(0, 3).map((day, i) => {
+      dy.time.slice(start, start + 3).map((day, k) => {
+        const i = start + k;
         const date = new Date(day + 'T12:00:00');
 
         return '<section>' +
@@ -636,32 +688,76 @@ function weatherError() {
     'Počasí není dostupné';
 }
 
+// Stejná adresa jako v MainActivity (dnešek + 3 další dny).
+const WEATHER_URL =
+  'https://api.open-meteo.com/v1/forecast' +
+  '?latitude=48.98&longitude=17.47' +
+  '&current=temperature_2m,weather_code' +
+  '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
+  '&timezone=Europe%2FPrague&forecast_days=4';
+
 if (!hasTV()) {
-  fetch(
-    'https://api.open-meteo.com/v1/forecast' +
-    '?latitude=48.98&longitude=17.47' +
-    '&current=temperature_2m,weather_code' +
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min' +
-    '&timezone=Europe%2FPrague&forecast_days=3'
-  )
+  fetch(WEATHER_URL)
   .then(r => r.json())
   .then(setWeather)
   .catch(weatherError);
 }
 
+// ----- Moje weby: přidat, upravit, smazat -----
+
+let editIndex = -1;      // -1 = nový web, jinak index upravovaného
+let deleteArmed = -1;    // první stisk „Smazat“ jen potvrzuje
+
+function loadSites() {
+  try {
+    const s = JSON.parse(localStorage.getItem('sites') || '[]');
+    return Array.isArray(s) ? s.filter(x => x && x.name && x.url) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function storeSites(sites) {
+  localStorage.setItem('sites', JSON.stringify(sites));
+}
+
+function isOpen(id) {
+  return document.getElementById(id).style.display === 'flex';
+}
+
+function resetForm() {
+  editIndex = -1;
+  deleteArmed = -1;
+  document.getElementById('editTitle').textContent = '＋ Přidat web';
+  document.getElementById('webName').value = '';
+  document.getElementById('webUrl').value = '';
+}
+
 function closeEdit() {
   document.getElementById('edit').style.display = 'none';
+  resetForm();
+  document.getElementById('addWebTile').focus();
 }
 
 function addWeb() {
+  resetForm();
+  renderSiteList();
   document.getElementById('edit').style.display = 'flex';
   document.getElementById('webName').focus();
 }
 
+// Doplní https:// když chybí („seznam.cz“ → „https://seznam.cz/“).
+// IP adresy a *.local (router, kamera v domácí síti) dostanou http://.
 function safeUrl(url) {
+  if (url && !/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
+    const host = url.split(/[/:]/)[0];
+    const local = /^\d{1,3}(\.\d{1,3}){3}$/.test(host) ||
+      /\.local$/i.test(host) || host === 'localhost';
+    url = (local ? 'http://' : 'https://') + url;
+  }
   try {
     const u = new URL(url);
-    return ['https:', 'http:'].includes(u.protocol)
+    return ['https:', 'http:'].includes(u.protocol) && u.hostname
       ? u.href : null;
   } catch (e) {
     return null;
@@ -669,37 +765,112 @@ function safeUrl(url) {
 }
 
 function saveWeb() {
-  const name = document.getElementById('webName')
-    .value.trim();
-
-  const url = safeUrl(
-    document.getElementById('webUrl').value.trim()
-  );
+  const name = document.getElementById('webName').value.trim();
+  const url = safeUrl(document.getElementById('webUrl').value.trim());
 
   if (!name || !url) {
-    toast('Zadej název a platnou adresu https://…');
+    toast('Zadej název a platnou adresu (např. seznam.cz)');
     return;
   }
 
-  const sites = JSON.parse(
-    localStorage.getItem('sites') || '[]'
-  );
+  const sites = loadSites();
 
-  sites.push({name, url});
+  if (editIndex >= 0 && editIndex < sites.length) {
+    sites[editIndex] = {name, url};
+    toast('Web upraven: ' + name);
+  } else {
+    sites.push({name, url});
+    toast('Web přidán: ' + name);
+  }
 
-  localStorage.setItem('sites', JSON.stringify(sites));
+  storeSites(sites);
+  renderCustom();
+  resetForm();
+  renderSiteList();
+  document.getElementById('webName').focus();
+}
+
+function editSite(i) {
+  const site = loadSites()[i];
+  if (!site) return;
+
+  editIndex = i;
+  deleteArmed = -1;
+  document.getElementById('editTitle').textContent = '✎ Upravit web';
+  document.getElementById('webName').value = site.name;
+  document.getElementById('webUrl').value = site.url;
+  renderSiteList();
+  document.getElementById('webName').focus();
+}
+
+function deleteSite(i) {
+  // Ochrana před omylem: první stisk se jen zeptá.
+  if (deleteArmed !== i) {
+    deleteArmed = i;
+    renderSiteList();
+    const b = document.querySelector('[data-del="' + i + '"]');
+    if (b) b.focus();
+    return;
+  }
+
+  const sites = loadSites();
+  const removed = sites.splice(i, 1)[0];
+  storeSites(sites);
+  if (editIndex === i) resetForm();
+  else if (editIndex > i) editIndex--;
+  deleteArmed = -1;
 
   renderCustom();
-  closeEdit();
+  renderSiteList();
+  if (removed) toast('Web smazán: ' + removed.name);
+
+  const next = document.querySelector(
+    '[data-del="' + Math.min(i, sites.length - 1) + '"]');
+  (next || document.getElementById('webName')).focus();
+}
+
+function renderSiteList() {
+  const sites = loadSites();
+  const box = document.getElementById('siteListBox');
+  const list = document.getElementById('siteList');
+
+  list.textContent = '';
+  box.style.display = sites.length ? 'block' : 'none';
+
+  sites.forEach((site, i) => {
+    const row = document.createElement('div');
+    row.className = 'site-row';
+
+    const info = document.createElement('div');
+    info.className = 'site-info';
+    const n = document.createElement('div');
+    n.className = 'site-name';
+    n.textContent = site.name;
+    const u = document.createElement('div');
+    u.className = 'site-url';
+    u.textContent = site.url;
+    info.append(n, u);
+
+    const edit = document.createElement('button');
+    edit.textContent = '✎ Upravit';
+    edit.onclick = () => editSite(i);
+
+    const del = document.createElement('button');
+    del.className = 'danger';
+    del.dataset.del = i;
+    del.textContent = deleteArmed === i ? 'Opravdu smazat?' : '🗑 Smazat';
+    del.onclick = () => deleteSite(i);
+
+    row.append(info, edit, del);
+    list.appendChild(row);
+  });
 }
 
 function renderCustom() {
   document.querySelectorAll('.custom-site')
     .forEach(e => e.remove());
 
-  const sites = JSON.parse(
-    localStorage.getItem('sites') || '[]'
-  );
+  const sites = loadSites();
 
   sites.forEach(site => {
     const b = document.createElement('button');
@@ -800,19 +971,130 @@ function setAppImages(map) {
   });
 }
 
-document.addEventListener('keydown',e=>{
- if(e.key==='Escape'&&document.getElementById('orderModal').style.display==='flex')closeOrder();
+// ----- Ovládání ovladačem -----
+
+// Tlačítko Zpět (volá MainActivity.onBackPressed): zavře otevřené okno.
+// Vrací true, když něco zavřelo; jinak aplikace odejde na TV.
+function handleBack() {
+  if (isOpen('orderModal')) { closeOrder(); return true; }
+  if (isOpen('edit')) { closeEdit(); return true; }
+  return false;
+}
+
+// Vlastní navigace šipkami: vybere nejbližší tlačítko v daném směru.
+// Při otevřeném okně se pohybuje jen uvnitř něj.
+function activeRoot() {
+  if (isOpen('orderModal')) return document.getElementById('orderModal');
+  if (isOpen('edit')) return document.getElementById('edit');
+  return document.querySelector('main');
+}
+
+function focusables(root) {
+  return [...root.querySelectorAll('button, input')]
+    .filter(el => !el.disabled && el.offsetParent !== null);
+}
+
+function moveFocus(dir) {
+  const items = focusables(activeRoot());
+  if (!items.length) return;
+
+  const cur = document.activeElement;
+  if (!items.includes(cur)) {
+    items[0].focus();
+    return;
+  }
+
+  const r = cur.getBoundingClientRect();
+  // Vzdálenost dvou úseků na ose (0, když se překrývají).
+  const gap = (a1, a2, b1, b2) =>
+    Math.max(0, Math.max(a1, b1) - Math.min(a2, b2));
+  let best = null;
+  let bestScore = Infinity;
+
+  for (const el of items) {
+    if (el === cur) continue;
+    const q = el.getBoundingClientRect();
+    let main;   // vzdálenost ve směru pohybu
+    let cross;  // odsazení do strany
+    let align;  // zarovnání (rozhoduje mezi stejně blízkými)
+
+    if (dir === 'left' || dir === 'right') {
+      main = dir === 'left' ? r.left - q.right : q.left - r.right;
+      cross = gap(r.top, r.bottom, q.top, q.bottom);
+      align = Math.abs(q.top - r.top);
+    } else {
+      main = dir === 'up' ? r.top - q.bottom : q.top - r.bottom;
+      cross = gap(r.left, r.right, q.left, q.right);
+      align = Math.abs(q.left - r.left);
+    }
+    if (main < -1) continue;
+
+    const score = main + cross * 3 + align * 0.1;
+    if (score < bestScore) {
+      bestScore = score;
+      best = el;
+    }
+  }
+
+  if (best) {
+    best.focus();
+    best.scrollIntoView({block: 'nearest'});
+  }
+}
+
+const arrowDirs = {
+  ArrowLeft: 'left', ArrowRight: 'right',
+  ArrowUp: 'up', ArrowDown: 'down'
+};
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (handleBack()) e.preventDefault();
+    return;
+  }
+
+  const dir = arrowDirs[e.key];
+  if (!dir) return;
+
+  // V textovém poli šipky doleva/doprava posouvají kurzor v textu.
+  const a = document.activeElement;
+  if (a && a.tagName === 'INPUT' && (dir === 'left' || dir === 'right')) {
+    return;
+  }
+
+  e.preventDefault();
+  moveFocus(dir);
 });
 
-// Aktualizace počasí každých 30 minut při otevřené úvodní obrazovce.
-function refreshWeather(){
- if(document.hidden)return;
- if(hasTV())call('weather');
- else fetch('https://api.open-meteo.com/v1/forecast?latitude=48.98&longitude=17.47&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FPrague&forecast_days=3')
-  .then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json();}).then(setWeather).catch(weatherError);
+// Po spuštění je vybraná první aplikace.
+(function initialFocus() {
+  const first = document.querySelector('#appTiles .tile');
+  if (first) first.focus();
+})();
+
+// Číslo verze v pravém dolním rohu.
+document.getElementById('version').textContent =
+  hasTV() && TV.version ? 'verze ' + TV.version() : 'náhled v prohlížeči';
+
+// ----- Počasí: obnova každých 30 minut -----
+// Na TV hlídá stáří počasí i MainActivity (po návratu do aplikace).
+function refreshWeather() {
+  if (document.hidden) return;
+  if (hasTV()) {
+    call('weather');
+  } else {
+    fetch(WEATHER_URL)
+      .then(r => { if (!r.ok) throw Error('HTTP ' + r.status); return r.json(); })
+      .then(setWeather)
+      .catch(weatherError);
+  }
 }
-setInterval(refreshWeather,30*60*1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshWeather();});
+setInterval(refreshWeather, 30 * 60 * 1000);
+if (!hasTV()) {
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refreshWeather();
+  });
+}
 </script>
 </body>
 </html>

@@ -8,7 +8,9 @@ Projekt Android Studio (Java, minSdk 26). Úvodní obrazovka běží v lokální
 - aktuální počasí a třídenní předpověď pro Ostrožskou Lhotu přes Open-Meteo, bez API klíče;
 - spouštění známých aplikací, pokud jsou v TV nainstalované;
 - vlastní jednoduchý webový prohlížeč s běžným stahováním do Downloads;
-- přidávání vlastních webových záložek, ukládají se lokálně;
+- vlastní weby: přidat, upravit, smazat (okno „Přidat web“); adresa bez https:// se doplní sama, IP adresy a *.local dostanou http://;
+- ovládání šipkami ovladače (vlastní navigace ve stránce), tlačítko Zpět nejdřív zavře otevřené okno;
+- vestavěný prohlížeč: stahování i ze stránek s přihlášením, nahrávání souborů, video přes celou obrazovku;
 - systémový výběr souborů;
 - LocalSend (spuštění nainstalované aplikace) a Disk Google (otevření webu).
 
@@ -44,3 +46,15 @@ Projekt nově obsahuje `.github/workflows/build-apk.yml`.
 5. Instalaci proveď nejprve jako běžnou aplikaci, bez převzetí tlačítka Home.
 
 Poznámka: sestavení nebylo v tomto prostředí spuštěno; chybí Android SDK/Gradle i síťový přístup k jejich stažení. Výsledek GitHub Actions je nutné zkontrolovat; úspěch není zaručen.
+
+## Podpisový klíč (aby šly aktualizace instalovat přes starou verzi)
+Bez pevného klíče podepisuje GitHub každé sestavení jiným dočasným klíčem a TV odmítne aktualizaci – starou verzi je nutné odinstalovat (smažou se tím vlastní weby a pořadí aplikací).
+
+Nastavení (jednou):
+1. GitHub → repozitář → Settings → Secrets and variables → Actions → **New repository secret**.
+2. `BROZAM_KEYSTORE_PASSWORD` – heslo ke klíči.
+3. `BROZAM_KEYSTORE_B64` – soubor klíče (`.jks`) zakódovaný do base64, jeden řádek.
+4. Alias klíče je pevně `brozam` (viz `app/build.gradle`).
+
+Když secrets chybí, sestavení projde dál s dočasným klíčem a v GitHub Actions se zobrazí varování.
+Po prvním nastavení klíče je potřeba BroZam TV v TV ještě jednou odinstalovat; další verze už jdou instalovat přes sebe.
