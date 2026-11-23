@@ -3,7 +3,8 @@
 Projekt Android Studio (Java, minSdk 26). Úvodní obrazovka běží v lokálním WebView. Soubor `app/src/main/assets/index.html` lze samostatně otevřít v prohlížeči PC pro kontrolu designu (v prohlížeči jsou některé televizní akce simulované).
 
 ## Funkce
-- živé hodiny a české datum;
+- živé hodiny a české datum, fotka na pozadí (`assets/bg.jpg`);
+- dlaždice aplikací ukazují skutečné bannery aplikací z TV (načítá je `MainActivity.loadAppImages`); nenainstalované aplikace jsou ztlumené;
 - aktuální počasí a třídenní předpověď pro Ostrožskou Lhotu přes Open-Meteo, bez API klíče;
 - spouštění známých aplikací, pokud jsou v TV nainstalované;
 - vlastní jednoduchý webový prohlížeč s běžným stahováním do Downloads;
@@ -38,7 +39,7 @@ Odinstalovat `BroZam TV` v Nastavení > Aplikace. Původní launcher nebyl změn
 Projekt nově obsahuje `.github/workflows/build-apk.yml`.
 1. Nahraj **obsah** složky `TCL-Launcher` do vlastního nového GitHub repozitáře (kořen repozitáře musí obsahovat `settings.gradle`, `app/` a `.github/`).
 2. GitHub > Actions > **Sestavit BroZam TV APK** > Run workflow.
-3. Po úspěšném doběhnutí stáhni v konkrétním běhu artifact `BroZam-TV-debug-APK`.
+3. Po úspěšném doběhnutí stáhni v konkrétním běhu artifact `BroZam-TV-APK`.
 4. Rozbal ZIP s artifactem. Soubor `app-debug.apk` je testovací instalační balíček.
 5. Instalaci proveď nejprve jako běžnou aplikaci, bez převzetí tlačítka Home.
 
