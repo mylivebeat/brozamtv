@@ -9,7 +9,6 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -365,34 +364,19 @@ public class MainActivity extends Activity {
             });
         }
 
+        // Tlačítko „Domů“: přejít na domovskou obrazovku televize
+        // (Google TV). BroZam TV zůstane na pozadí.
         @JavascriptInterface
-        public void settings() {
-            runOnUiThread(() ->
-                safeStart(new Intent(Settings.ACTION_SETTINGS),
-                    "Nastavení se nepodařilo otevřít")
-            );
-        }
-
-        @JavascriptInterface
-        public void apps() {
+        public void home() {
             runOnUiThread(() -> {
-                if (!safeStart(
-                    new Intent(Settings.ACTION_APPLICATION_SETTINGS),
-                    null)) {
-                    safeStart(new Intent(Settings.ACTION_SETTINGS),
-                        "Seznam aplikací se nepodařilo otevřít");
+                Intent i = new Intent(Intent.ACTION_MAIN);
+                i.addCategory(Intent.CATEGORY_HOME);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                if (!safeStart(i, null)) {
+                    moveTaskToBack(true);
                 }
             });
-        }
-
-        @JavascriptInterface
-        public void hdmi() {
-            toast("Přepni na HDMI tlačítkem Input na ovladači TCL");
-        }
-
-        @JavascriptInterface
-        public void mirroring() {
-            toast("Zrcadlení otevři v nabídce vstupů televize TCL");
         }
 
         @JavascriptInterface

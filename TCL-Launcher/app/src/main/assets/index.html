@@ -359,12 +359,7 @@ header .right {
 <header>
   <div class="logo">▣ BroZam TV</div>
   <nav class="nav">
-    <button onclick="search()">⌕ Vyhledávání</button>
-    <button class="selected" onclick="goHome()">⌂ Domů</button>
-    <button onclick="allApps()">▦ Aplikace</button>
-    <button onclick="settings()">⚙ Nastavení</button>
-    <button onclick="mirror()">▣ Miracast</button>
-    <button onclick="hdmi()">▭ HDMI</button>
+    <button class="selected" onclick="goHome()" title="Zpět na domovskou obrazovku TV">⌂ Domů</button>
   </nav>
   <div class="right" id="headClock">--:--</div>
 </header>
@@ -525,32 +520,10 @@ function sendLocal() {
   }
 }
 
-function settings() {
-  if (hasTV()) call('settings');
-  else toast('Nastavení televize');
-}
-
-function allApps() {
-  if (hasTV()) call('apps');
-  else toast('Seznam aplikací');
-}
-
-function mirror() {
-  if (hasTV()) call('mirroring');
-  else toast('Použij nabídku vstupů TCL');
-}
-
-function hdmi() {
-  if (hasTV()) call('hdmi');
-  else toast('Použij tlačítko Input na ovladači');
-}
-
+// Odejde z BroZam TV na domovskou obrazovku televize (Google TV).
 function goHome() {
-  window.scrollTo(0, 0);
-}
-
-function search() {
-  browse('https://www.google.cz/');
+  if (hasTV()) call('home');
+  else toast('Na TV se otevře domovská obrazovka televize');
 }
 
 const weekdays = [
