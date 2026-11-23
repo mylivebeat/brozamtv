@@ -31,7 +31,10 @@ button {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: #031126 url('bg.jpg') center / cover no-repeat;
+  background: #031126 url('bg.jpg') no-repeat;
+  /* Mírně zvětšeno a posunuto, aby slunce bylo vidět nad dlaždicemi */
+  background-size: 112% auto;
+  background-position: 9% 100%;
 }
 .shade {
   position: fixed;
@@ -111,6 +114,7 @@ header .right {
   padding-left: 1.6vw;
 }
 #dashboard {
+  text-shadow: 0 2px 10px #000c, 0 0 2px #0009;
   display: flex;
   align-items: center;
   height: 21vh;
