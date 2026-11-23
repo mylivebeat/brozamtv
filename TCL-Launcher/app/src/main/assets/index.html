@@ -121,7 +121,7 @@ header .right {
   gap: 2vw;
 }
 .clock {
-  width: 50%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -139,15 +139,14 @@ header .right {
   margin-top: 1vh;
 }
 .weather {
-  width: 50%;
+  /* Blok počasí jen tak široký, jak je potřeba, zarovnaný doprava */
+  margin-left: auto;
   border-left: 2px solid #ffffffaa;
   padding-left: 1.8vw;
   display: flex;
-  gap: 2vw;
+  gap: 3.5vw;
   align-items: center;
-  justify-content: space-between;
 }
-.now { min-width: 35%; }
 .place {
   font-weight: 700;
   font-size: 1.25vw;
