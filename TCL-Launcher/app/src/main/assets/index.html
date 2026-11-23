@@ -59,10 +59,17 @@ header {
   padding-bottom: 1vh;
 }
 .logo {
+  display: flex;
+  align-items: center;
+  gap: .7vw;
   font-weight: 800;
   font-size: 1.8vw;
   white-space: nowrap;
   color: white;
+}
+.logo-ico {
+  width: 1.9vw;
+  height: 1.9vw;
 }
 .nav {
   display: flex;
@@ -357,7 +364,10 @@ header .right {
 
 <main>
 <header>
-  <div class="logo">▣ BroZam TV</div>
+  <div class="logo">
+    <svg class="logo-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    BroZam TV
+  </div>
   <nav class="nav">
     <button class="selected" onclick="goHome()" title="Zpět na domovskou obrazovku TV">⌂ Domů</button>
   </nav>
