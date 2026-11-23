@@ -408,12 +408,12 @@ header .right {
 <div>
   <div class="section-title">◎ Webové stránky</div>
   <div class="tiles" id="webTiles">
-    <button class="tile web" onclick="browse('https://www.google.com/')">🌐 Webový prohlížeč</button>
-    <button class="tile dark" onclick="browse('https://cigar-pilot.web.app/')">🚬 Cigar Pilot</button>
-    <button class="tile dark" onclick="browse('https://mylivebeat-dcf59.web.app/')">♫ My Live Beat</button>
+    <button class="tile web" onclick="browse('https://www.google.cz/')">🔍 Google.cz</button>
     <button class="tile light" onclick="browse('https://www.seznam.cz/')">Seznam.cz</button>
-    <button class="tile dark" onclick="browse('https://web.whatsapp.com/')">💬 WhatsApp Web</button>
-    <button class="tile" onclick="addWeb()">＋ Přidat web</button>
+    <button class="tile dark" onclick="browse('https://mylivebeat-dcf59.web.app/')">♫ My Live Beat</button>
+    <button class="tile dark" onclick="browse('https://www.csfd.cz/')">🎬 ČSFD.cz</button>
+    <button class="tile dark" onclick="browse('https://claude.ai/')">✳ Claude.ai</button>
+    <button class="tile" id="addWebTile" onclick="addWeb()">＋ Přidat web</button>
   </div>
 </div>
 
@@ -550,7 +550,7 @@ function goHome() {
 }
 
 function search() {
-  browse('https://www.google.com/');
+  browse('https://www.google.cz/');
 }
 
 const weekdays = [
@@ -722,7 +722,9 @@ function renderCustom() {
 
     b.addEventListener('click', () => browse(site.url));
 
-    document.getElementById('webTiles').appendChild(b);
+    // Vlastní weby se vkládají před „Přidat web“, ten zůstává poslední.
+    document.getElementById('webTiles').insertBefore(
+      b, document.getElementById('addWebTile'));
   });
 }
 
